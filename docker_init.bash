@@ -549,7 +549,9 @@ install_venv_dependencies() {
     # stage and falls back to the authorized Agent directory.
     write_agent_stage_manifest "$_agent_src" "$_stage_src" \
       || echo "!! WARNING: could not record which hermes-agent source was staged; the startup recovery installer will not use the staged copy"
-    uv pip install -e "$_stage_src[all]" --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+    # Read the Agent project's dependency overrides, including security pins,
+    # rather than resolving from the WebUI working directory.
+    uv pip install -e "$_stage_src[all]" --project "$_stage_src" --trusted-host pypi.org --trusted-host files.pythonhosted.org \
       || { echo "!! Failed to install hermes-agent's requirements"; return 1; }
   else
     echo ""

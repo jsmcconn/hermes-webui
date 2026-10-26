@@ -533,7 +533,7 @@ The two- and three-container setups use **named Docker volumes** (not bind mount
       └─────────────────────────┘
 ```
 
-The WebUI container doesn't ship with the agent's Python deps — at startup it runs `uv pip install /home/hermeswebui/.hermes/hermes-agent` to install them from the shared volume. The WebUI mount is read-only; the agent container is the only writer.
+The WebUI container doesn't ship with the agent's Python dependencies. At startup it stages the shared source in `/app/hermes-agent-src` and installs it in editable mode into the WebUI virtual environment. The installer selects the staged Agent as its uv project so the Agent's declared dependency overrides also apply. The WebUI mount is read-only; the agent container is the only writer.
 
 ## Upgrading the agent container
 
