@@ -660,6 +660,22 @@ install_venv_dependencies() {
     # stage and falls back to the authorized Agent directory.
     write_agent_stage_manifest "$_agent_src" "$_stage_src" \
       || echo "!! WARNING: could not record which hermes-agent source was staged; the startup recovery installer will not use the staged copy"
+    # The Docker stamp names the image's /opt/hermes PM runtime. Point only
+    # the writable copy at its copied runtime so WebUI plugin operations work.
+    python - "$_stage_src" <<'HERMES_PM_RELOCATE' || return 1
+from pathlib import Path
+import json
+import sys
+stage = Path(sys.argv[1])
+stamp = stage / 'install-stamp.json'
+if stamp.is_file():
+    data = json.loads(stamp.read_text())
+    if data.get('distribution') == 'docker':
+        runtime = stage / 'pm-runtime'
+        assert (runtime / 'pm-runtime.json').is_file(), 'Copied Hermes PM runtime is missing'
+        data['pmRuntime'] = str(runtime)
+        stamp.write_text(json.dumps(data))
+HERMES_PM_RELOCATE
     install_staged_agent "$_stage_src" \
       || { echo "!! Failed to install hermes-agent's requirements"; return 1; }
   else
