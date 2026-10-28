@@ -578,6 +578,8 @@ The two- and three-container setups use **named Docker volumes** (not bind mount
 
 The WebUI container doesn't ship with the agent's Python deps. At startup it copies the agent source from the shared volume into a writable stage (`/app/hermes-agent-src`) and installs it with `uv pip install -e "/app/hermes-agent-src[all]"`, passing the agent's own `[tool.uv] override-dependencies` as `--overrides` (since agent v0.22.5 its requirements only resolve with them, #8524). The WebUI mount is read-only; the agent container is the only writer.
 
+Docker install stamps in the writable staged copy are retargeted to its copied package-manager runtime. The shared source volume stays untouched, while WebUI plugin install and update operations use the staged runtime.
+
 ## Upgrading the agent container
 
 The `hermes-agent-src` named volume is initialised from the agent image's `/opt/hermes` on first `up`. Docker reuses the volume verbatim on every subsequent `up` — **even after `docker pull` of a newer agent image**. The cached volume content masks the new image's source tree, so a fresh `docker pull` of `nousresearch/hermes-agent:latest` does not by itself give you the new agent code, dependencies, or entrypoint.
